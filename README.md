@@ -1,0 +1,1 @@
+link to data: https://www.kaggle.com/datasets/ascanipek/skin-diseases?resource=download
