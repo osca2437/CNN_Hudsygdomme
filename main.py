@@ -1,4 +1,3 @@
-import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -6,9 +5,11 @@ import torch.nn.functional as F
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 # Define device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {device}")
 
 # Parameters
 num_classes = 6
@@ -25,8 +26,8 @@ transform = transforms.Compose([
 ])
 
 # Load the datasets from train and test directories
-train_dataset = datasets.ImageFolder(root="train", transform=transform)
-test_dataset = datasets.ImageFolder(root="test", transform=transform)
+train_dataset = datasets.ImageFolder(root="dataset/train", transform=transform)
+test_dataset = datasets.ImageFolder(root="dataset/test", transform=transform)
 
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
@@ -76,12 +77,14 @@ def to_one_hot(labels, num_classes):
 train_losses, test_losses = [], []
 train_accuracies, test_accuracies = [], []
 
+
 for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
     correct = 0
     total = 0
-    for inputs, labels in train_loader:
+    for inputs, labels in tqdm(train_loader, desc=f"Epoch {epoch+1}/{num_epochs}", leave=False):
+        # Move data to device
         inputs = inputs.to(device)
         # Convert labels to one-hot vectors
         labels_onehot = to_one_hot(labels, num_classes).to(device)
@@ -128,10 +131,11 @@ for epoch in range(num_epochs):
     test_accuracies.append(epoch_test_acc)
     
     print(f"Epoch {epoch+1}/{num_epochs} -- "
-          f"Train Loss: {epoch_loss:.4f}, Train Acc: {epoch_acc:.4f} | "
-          f"Test Loss: {epoch_test_loss:.4f}, Test Acc: {epoch_test_acc:.4f}")
+        f"Train Loss: {epoch_loss:.4f}, Train Acc: {epoch_acc:.4f} | "
+        f"Test Loss: {epoch_test_loss:.4f}, Test Acc: {epoch_test_acc:.4f}")
 
-# Plotting the training and testing loss
+
+    # Plotting the training and testing loss
 plt.figure(figsize=(12, 5))
 plt.subplot(1, 2, 1)
 plt.plot(train_losses, label="Train Loss")
@@ -152,3 +156,22 @@ plt.legend()
 
 plt.tight_layout()
 plt.show()
+
+# Save the plots
+plt.savefig("training_testing_plots.png")
+print("Plots saved as training_testing_plots.png")
+
+
+
+# Save the model
+torch.save(model.state_dict(), "simple_cnn_model.pth")
+print("Model saved as simple_cnn_model.pth")
+# Load the model (for inference or further training)
+# model.load_state_dict(torch.load("simple_cnn_model.pth"))
+# model.eval()  # Set the model to evaluation mode if needed
+# Example inference code (uncomment to use)
+# with torch.no_grad():
+#     sample_input = torch.randn(1, 3, image_size, image_size).to(device)  # Example input
+#     output = model(sample_input)
+#     predicted_class = torch.argmax(output, dim=1)
+#     print(f"Predicted class: {predicted_class.item()}")
