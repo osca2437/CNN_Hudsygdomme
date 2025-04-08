@@ -14,7 +14,7 @@ print(f"Using device: {device}")
 # Parameters
 num_classes = 6
 batch_size = 32
-num_epochs = 10
+num_epochs = 15
 learning_rate = 0.001
 image_size = 128  # resizing images to 128x128
 
